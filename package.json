@@ -1,0 +1,33 @@
+{
+  "name": "FB-google-drive-to-json-po-mo",
+  "version": "1.0.0",
+  "description": "Downloads Google Spreadsheet and converts to JSON, PO, and MO",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lang": "babel-node --presets=es2015 index.js"
+  },
+  "keywords": [
+    "translate",
+    "gettext"
+  ],
+  "author": "Jes",
+  "license": "ISC",
+  "dependencies": {
+    "babel-preset-es2015": "^6.9.0",
+    "csvtojson": "^1.0.0",
+    "fs": "0.0.2",
+    "gettext-parser": "^1.2.0",
+    "googleapis": "^12.0.0",
+    "mkdirp": "^0.5.1",
+    "path": "^0.12.7"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.11.4"
+  },
+  "babel": {
+    "presets": [
+      "es2015"
+    ]
+  }
+}
