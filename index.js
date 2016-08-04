@@ -8,13 +8,13 @@ import {
 	DOCUMENT_ID,
 	LANGUAGE_FOLDER,
 	TRANSLATION_FILE,
-	LANGUAGES
 } from './config';
 import {
 	authorizeEvent
 } from './auth';
 
-let location = path.join( __dirname, '../', LANGUAGE_FOLDER );
+let location          = path.join( __dirname, '../', LANGUAGE_FOLDER );
+let languages_columns = [];
 
 authorizeEvent()
 	.then( getLanguageLocation )
@@ -73,7 +73,7 @@ function convertToJSON() {
 		let CVSlocation = path.join( location, TRANSLATION_FILE + '.csv' );
 
 		fs.readFile( CVSlocation, 'UTF-8', ( err, result ) => {
-			
+			languages_columns = result.split( '\n' )[ 0 ].trim().split( ',' ).slice( 1 );
 			// format string to support escaping of characters
 			converter.preProcessRaw = ( data, conv ) => {
 				data = data.replace( /\\""/g, '\\\\\\"');
@@ -98,41 +98,41 @@ function generatePO( translations ) {
 	let translation_table = new Map();
 
 	// set PO header for each column
-	LANGUAGES.forEach( ( value, key ) => {
+	languages_columns.map( ( lang ) => {
 		let header_str = `msgid ""
 msgstr ""
 "Content-Type: text/plain; charset=UTF-8\\n"
 "Content-Transfer-Encoding: 8bit\\n"
 "MIME-Version: 1.0\\n"
-"Language: ${key}\\n"
+"Language: ${lang}\\n"
 "X-Generator: FB-google-drive-to-json-po-mo 1.0.0\\n"
 
 `;
 
-		translation_table.set( key, header_str );
+		translation_table.set( lang, header_str );
 	} );
 
 	translations.map( ( translation ) => {
 		let english = Object.keys( translation )[ 0 ];
-		LANGUAGES.forEach( ( value, key ) => {
+		languages_columns.map( ( lang ) => {
 			let phrase = `msgid "${translation[ english ]}"
-msgstr "${translation[value]}"
+msgstr "${translation[lang]}"
 
 `;
 
-			let current_translation = translation_table.get( key ) + phrase;
-			translation_table.set( key, current_translation )
+			let current_translation = translation_table.get( lang ) + phrase;
+			translation_table.set( lang, current_translation )
 		} );
 	} );
 
-	LANGUAGES.forEach( ( value, key ) => {
-		let PO_location      = path.join( location, key + '.po' );
-		let translation_lang = translation_table.get( key );
+	languages_columns.map( ( lang ) => {
+		let PO_location      = path.join( location, lang + '.po' );
+		let translation_lang = translation_table.get( lang );
 
 		fs.writeFile( PO_location, translation_lang, ( err ) => {
 			if ( err ) throw err;
-			log_date( `PO file[ ${value} ] ${PO_location}` );
-			saveMO( key, translation_lang );
+			log_date( `PO file[ ${lang} ] ${PO_location}` );
+			saveMO( lang, translation_lang );
 		} );
 	} );
 
