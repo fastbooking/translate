@@ -15,6 +15,7 @@ import {
 
 let location          = path.join( __dirname, '../', LANGUAGE_FOLDER );
 let languages_columns = [];
+let save_json         = process.argv.indexOf( 'json' ) > -1;
 
 authorizeEvent()
 	.then( getLanguageLocation )
@@ -153,7 +154,11 @@ function saveMO ( key, translation ) {
 }
 
 function formatJSON( translations ) {
-	return new Promise( ( resolve ) => {
+	console.log( '\n> PROCESS CSV' );
+	return new Promise( ( resolve, reject ) => {
+		if ( !save_json ) {
+			reject();
+		}
 		let pretty_translate = {};
 		translations.map( ( translation ) => {
 			let first_key = translation[ Object.keys( translation )[ 0 ] ];
@@ -164,7 +169,6 @@ function formatJSON( translations ) {
 }
 
 function saveJSON( pretty_translations ) {
-	console.log( '\n> PROCESS CSV' );
 	let JSONlocation = path.join( location, TRANSLATION_FILE + '.json' );
 
 	fs.writeFile( JSONlocation, JSON.stringify( pretty_translations ), ( err ) => {
