@@ -25,15 +25,15 @@ authorizeEvent()
 	.then( saveJSON );
 
 function getLanguageLocation( auth ) {
-	console.log( '> Checking LANGUAGE_FOLDER...' )
-	return new Promise( function ( resolve, reject ) {
-		console.log( '> Creating LANGUAGE_FOLDER at', location );
+	console.log( '> LANGUAGE FOLDER' );
+	return new Promise( ( resolve, reject ) => {
+		log_date( 'Verifying location...' );
 		mkdirp( location , function ( err ) {
 			if ( err ) {
 				console.error( err );
 				reject( err );
 			} else {
-				console.log( '> LANGUAGE_FOLDER created at', location );
+				log_date( `Location: ${location}` );
 				resolve( auth );
 			}
 		} );
@@ -46,40 +46,52 @@ function performDownload( auth ) {
 	let dest         = fs.createWriteStream( fileLocation );
 	let drive        = google.drive( 'v3' );
 
-	return new Promise ( function ( resolve ) {
+	return new Promise ( ( resolve ) => {
 		dest.addListener( 'finish', resolve );
-
-		console.log( '> Downloading translation file from Google Drive...' );
+		
+		console.log( '\n> DOWNLOAD CSV' );
+		log_date( 'Downloading translation file from Google Drive...' );
 		drive.files.export( {
 				fileId: fileId,
 				mimeType: 'text/csv',
 				auth: auth
 			} )
 			.on( 'end', function () {
-				console.log( '> Translation file successfully downloaded as CVS!' );
-				console.log( '  File location:', fileLocation );
+				log_date( 'Translation file successfully downloaded as CVS!' );
+				log_date( `File location: ${fileLocation}` );
 			} )
 			.on( 'error', function ( err ) {
-				console.log( '> Error during download', err );
+				log_date( `> Error during download ${err}` );
 			} )
 			.pipe( dest );
 	} );
 }
 
 function convertToJSON() {
-	let converter   = new csvtojson.Converter( {} );
-	let CVSlocation = path.join( location, TRANSLATION_FILE + '.csv' );
+	return new Promise ( ( resolve, reject ) => {
+		let converter   = new csvtojson.Converter( {} );
+		let CVSlocation = path.join( location, TRANSLATION_FILE + '.csv' );
 
-	return new Promise ( function ( resolve ) {
-		converter.on( 'end_parsed', function ( res ) {
-			console.log( '> Prettifying JSON...' );
-			resolve( res );
+		fs.readFile( CVSlocation, 'UTF-8', ( err, result ) => {
+			
+			// format string to support escaping of characters
+			converter.preProcessRaw = ( data, conv ) => {
+				data = data.replace( /\\""/g, '\\\\\\"');
+				data = data.replace( /""/g, '\\"');
+				conv( data );
+			};
+
+			converter.fromString( result, ( err, json ) => {
+				if ( err ) {
+					reject( err )
+				}
+				resolve( json );
+			} );
+
 		} );
-
-		//read from file
-		fs.createReadStream( CVSlocation ).pipe( converter );
 	} );
 }
+
 
 function generatePO( translations ) {
 
@@ -119,8 +131,8 @@ msgstr "${translation[value]}"
 
 		fs.writeFile( PO_location, translation_lang, ( err ) => {
 			if ( err ) throw err;
-			console.log( `> Success generating ${PO_location}` );
-			saveMO( path.join( location, key + '.mo' ), translation_lang );
+			log_date( `PO file[ ${value} ] ${PO_location}` );
+			saveMO( key, translation_lang );
 		} );
 	} );
 
@@ -129,13 +141,14 @@ msgstr "${translation[value]}"
 	} );
 }
 
-function saveMO ( path, translation ) {
-	let po_obj = gettextParser.po.parse( translation );
-	let mo_obj = gettextParser.mo.compile( po_obj);
+function saveMO ( key, translation ) {
+	let MO_location = path.join( location, key + '.mo' );
+	let po_obj      = gettextParser.po.parse( translation );
+	let mo_obj      = gettextParser.mo.compile( po_obj);
 
-	fs.writeFile( path, mo_obj, ( err ) => {
+	fs.writeFile( MO_location, mo_obj, ( err ) => {
 		if ( err ) throw err;
-		console.log( `> Success generating ${path}` );
+		log_date( `MO file[ ${key} ] ${MO_location}` );
 	} );
 }
 
@@ -151,12 +164,17 @@ function formatJSON( translations ) {
 }
 
 function saveJSON( pretty_translations ) {
-	console.log( '> Saving translation file to JSON...' );
+	console.log( '\n> PROCESS CSV' );
 	let JSONlocation = path.join( location, TRANSLATION_FILE + '.json' );
 
 	fs.writeFile( JSONlocation, JSON.stringify( pretty_translations ), ( err ) => {
 		if ( err ) throw err;
-		console.log( '> Translation file successfully downloaded as JSON!' );
-		console.log( '  File location:', JSONlocation );
+		log_date( `JSON ${JSONlocation}` );
 	} );
+}
+
+function log_date( str ) {
+	let time = new Date();
+	let now = `[${`0${time.getHours()}`.slice( -2 )}:${`0${time.getMinutes()}`.slice( -2 )}:${`0${time.getSeconds()}`.slice( -2 )}]`;
+	console.log( now, str );
 }

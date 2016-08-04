@@ -5,11 +5,10 @@
 export const SCOPE = [ 'https://www.googleapis.com/auth/drive' ];
 
 // Folder location relative to current directory
-export const LANGUAGE_FOLDER = '/src/language';
+export const LANGUAGE_FOLDER = 'okuranikko/src/languages';
 
 // Google Drive Document ID
-// export const DOCUMENT_ID = '16Wi59-o0_8Lc7CXErEGJR4ssDFNh0eWJL6wuPkEwDs4';
-export const DOCUMENT_ID = '13lu13ej-R_vgmoYJtA2lBOi5Sm8Dbc_tmvJdFBohUKI';
+export const DOCUMENT_ID = '10k7d0qv8U4lRhrKwQaT3jFJJZ74edWvaEHiyHB48F7Y';
 
 // File name of translation file to be stored at the LANGUAGE_FOLDER
 export const TRANSLATION_FILE = 'translation';
