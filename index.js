@@ -161,7 +161,11 @@ function formatJSON( translations ) {
 		}
 		let pretty_translate = {};
 		translations.map( ( translation ) => {
-			let first_key = translation[ Object.keys( translation )[ 0 ] ];
+			let default_key = Object.keys( translation )[ 0 ];
+			let first_key   = translation[ default_key ];
+
+			delete translation[ default_key ];
+
 			pretty_translate[ first_key ] = translation;
 		} );
 		resolve( pretty_translate );
