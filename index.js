@@ -85,6 +85,7 @@ function convertToJSON() {
 			converter.fromString( result, ( err, json ) => {
 				if ( err ) {
 					reject( err )
+					console.log('Error converting csv:', err)
 				}
 				resolve( json );
 			} );
